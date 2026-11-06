@@ -1,90 +1,20 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Word Bot</title>
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#3aa8ff">
+  <title>Word Bot</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
 </head>
 <body>
-<div id="app" class="hints">
-  <header>
-    <div class="brand"><span aria-hidden="true">🤖</span> Word Bot</div>
-    <div id="levelTitle" class="level-title"></div>
-    <div class="spacer"></div>
-    <button id="btnRead" class="hbtn"><span class="en">🔊 Read it</span><span class="hint">よみあげる</span></button>
-    <button id="btnHint" class="hbtn" aria-pressed="true">ヒント</button>
-    <button id="btnSound" class="hbtn" aria-label="sound">🔈</button>
-    <button id="btnMenu" class="hbtn"><span class="en">Menu</span><span class="hint">メニュー</span></button>
-  </header>
-
-  <main>
-    <section class="stage-col">
-      <div id="goalbar" class="goalbar">
-        <div class="goal-text" id="goalText" role="button" tabindex="0" title="🔊">
-          <div class="goal-en" id="goalEn"></div>
-          <div class="hint goal-ja" id="goalJa"></div>
-        </div>
-        <div class="newwords" id="newWords"></div>
-      </div>
-      <div class="stage-wrap" id="stageWrap">
-        <canvas id="stage" aria-label="Game stage"></canvas>
-        <div id="banner" class="banner" hidden><div class="b-en" id="bannerEn"></div><div class="b-ja" id="bannerJa"></div></div>
-      </div>
-      <div class="controls">
-        <button id="btnRun" class="btn run"><span class="en">▶ Run</span><span class="hint">うごかす</span></button>
-        <button id="btnStep" class="btn"><span class="en">⏭ Step</span><span class="hint">1つずつ</span></button>
-        <button id="btnReset" class="btn"><span class="en">↺ Reset</span><span class="hint">もどす</span></button>
-        <label class="speed" title="speed">🐢 <input id="speed" type="range" min="0" max="2" step="1" value="1" aria-label="speed"> 🐇</label>
-      </div>
-    </section>
-
-    <section class="pal-col">
-      <h2><span class="en">Blocks</span> <small>ブロック</small></h2>
-      <div id="palette"></div>
-      <p class="tiphint hint">タップか ドラッグで ならべよう</p>
-    </section>
-
-    <section class="prog-col" id="progCol">
-      <h2><span class="en">Program</span> <small>プログラム</small> <span id="count" class="count"></span></h2>
-      <div id="program"></div>
-      <button id="btnClear" class="clear"><span class="en">Clear</span> <small>ぜんぶ けす</small></button>
-    </section>
-  </main>
-
-  <div id="menu" class="screen">
-    <div class="menu-card">
-      <div class="menu-hero">
-        <div class="hero-bit" aria-hidden="true">🤖</div>
-        <div>
-          <h1>Word Bot</h1>
-          <p class="tag-en">Tell Bit what to do — in English!</p>
-          <p class="tag-ja">ビットに えいごで めいれいしよう！</p>
-        </div>
-      </div>
-      <div id="levelGrid" class="level-grid"></div>
-      <p class="credit">🔈 Sound on? Tap a block to hear it.</p>
+  <div id="letterbox">
+    <div id="stage" class="hints">
+      <div id="screen"></div>
+      <div id="overlay"></div>
+      <div id="drag-layer"></div>
     </div>
   </div>
-
-  <div id="dialog" class="screen" hidden>
-    <div class="dialog-card">
-      <h2 id="dlgTitle">Level clear!</h2>
-      <div id="dlgStars" class="big-stars"></div>
-      <p id="dlgMsg" class="dlg-msg"></p>
-      <div class="dlg-btns">
-        <button id="dlgNext" class="btn run"><span class="en">Next ▶</span><span class="hint">つぎへ</span></button>
-        <button id="dlgAgain" class="btn"><span class="en">↺ Again</span><span class="hint">もういちど</span></button>
-        <button id="dlgMenu" class="btn"><span class="en">Menu</span><span class="hint">メニュー</span></button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script src="js/core.js"></script>
-<script src="js/levels.js"></script>
-<script src="js/audio.js"></script>
-<script src="js/render.js"></script>
-<script src="js/app.js"></script>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>

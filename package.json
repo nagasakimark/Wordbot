@@ -1,0 +1,21 @@
+{
+  "name": "wordbot",
+  "version": "2.0.0",
+  "description": "Word Bot: learn programming in English with Bit the robot",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@fontsource/fredoka": "^5.3.0",
+    "@fontsource/m-plus-rounded-1c": "^5.3.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.21"
+  }
+}

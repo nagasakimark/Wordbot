@@ -1,48 +1,70 @@
 # Word Bot
 
-Browser block-coding game where every block is a short English sentence (`go right 3`, `jump`, `get the key`, `say "Hello!"`). Kids tell **Bit** the robot what to do, so coding practice is English practice. Built for Japanese elementary students on school Chromebooks (1366×598, touchscreen, no typing, no server).
+Learn to program in English. Bit is a little robot who only understands English, so every block is a real English sentence: `go forward`, `repeat 4 times`, `if Bit can go forward`, `to paint a box:`. Built for Japanese elementary students (grade 5 pilot) on school Chromebooks: touch-friendly, no typing, no server.
 
-Plan: see the "Word Bot: English Block Coding Plan" doc. Learning path is **Move → Remix → Make**.
+## The course
 
-## Status: milestone 1 (Move, levels 1–8)
+Five worlds, each built around one big programming idea. Every world opens with a concept card in very easy Japanese.
 
-| Level | Teaches | New English |
-| --- | --- | --- |
-| 1 Hello, Bit | sequence | go right |
-| 2 Go right 3 | numbers matter | number slot |
-| 3 Up and over | two-step sequence | go up |
-| 4 Jump the water | new command | jump |
-| 5 Bonk! | debugging, Step button | go left, go down |
-| 6 Get the coin | actions on objects, locked star | get the coin |
-| 7 The red door | order of actions | get the key, open the door |
-| 8 Hello, friend | speaking / greeting | say "Hello!" |
+| World | Big idea | What kids do | New English |
+| --- | --- | --- | --- |
+| 1 Hello, Bit! | Commands, order, debugging | Walk Bit home, turn from Bit's point of view, fix a buggy program | go forward, turn left/right, pick it up |
+| 2 Again and again | Loops, nested loops | Repeat moves, paint stripes and squares | repeat 4 times, paint it red |
+| 3 New words | Functions | Teach Bit a word (`to paint a box:`), name your own, fix a word | to …:, turn around, get the gem |
+| 4 If… | Conditions, general programs | One program must solve 3 maps at once: until home, if/otherwise, colour signs, the right-hand maze rule | repeat until Bit is home, if Bit can go forward, otherwise |
+| 5 Count it! | Variables | Count steps and gems, say the answer, spiral with `repeat size times` | set steps to 0, add 1 to steps, say steps |
 
-Not yet built: loops (`repeat`), turning, events (`when`), conditions (`if`), variables, Remix mini-games, Make mode, sharing.
+Things that push past "move the robot":
 
-## Run it
+- **Several maps per level (from World 4).** The same program runs on every map, like tests. A list of moves can't pass, so kids have to write a general program.
+- **English code view (`<>` button).** It shows the blocks as indented English text, like Python, and highlights the running line. It's a bridge toward typed code.
+- **Visible control flow.** Conditions flash ✓/✗ on the block, loops show `2/4`, and a "new word" lights up its definition while it runs.
+- **Debug levels.** Kids get a broken program and fix it. `Step` runs one block at a time.
+- **Stars for short programs.** ★★★ means the fewest blocks.
 
-Static site, no build step. Open `index.html`, or serve the folder (`python3 -m http.server`) and visit it.
+## Quick start
 
-- `?unlock` unlocks every level (teacher shortcut). `?level=3` jumps to a level.
-- Progress (stars), the ヒント toggle, sound and speed are saved in `localStorage`.
+You need [Node.js](https://nodejs.org) 20 or newer.
 
-## How it's organised
+```bash
+npm install
+npm run dev        # play at http://localhost:5173
+npm test           # checks the language rules and every level
+npm run build      # the finished site in dist/
+```
 
-| File | Job |
+URL helpers: `?level=4-6` opens a level, `?levels` opens the level list, `?unlock` opens every level, `?nointro` skips concept cards.
+
+## Publishing on GitHub Pages
+
+`.github/workflows/pages.yml` tests, builds and publishes on every push to `main`. One-time setup: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+
+## Adding or changing a level
+
+Levels live in `src/content/levels.js`. A map is a list of strings:
+
+```
+' ' sky (Bit falls)   '.' grass   '#' rock   'T' tree   'p' white paint pad
+'g' gem   'H' Bit's house   '1' red tile   '2' blue tile   '^ > v <' Bit's start and facing
+```
+
+Every level has a `solution` written in English code. `npm test` proves it passes every map, sets ★★★ (par) to its block count, and checks that multi-map levels can't be solved by replaying map 1's moves. If a test fails after you edit a map, the message says which map and why.
+
+## Code map
+
+| Folder | What's in it |
 | --- | --- |
-| `js/core.js` | Pure game logic: blocks, `exec()` (one block → events), win check, a breadth-first solver. No DOM, runs in Node. |
-| `js/levels.js` | Levels as ASCII maps + palette + `par`. Adding a level = adding an object. |
-| `js/render.js` | Canvas drawing and animations. Consumes the events from `core.js`. |
-| `js/audio.js` | Synthesised sound effects + browser speech (synthetic English voice). No audio files. |
-| `js/app.js` | Screens, block palette/program, tap + drag, run/step loop, progress. |
-| `tests/levels.test.js` | `node tests/levels.test.js`: every level is solvable and `par` is the true minimum. |
+| `src/engine/` | The language: blocks (EN text, JA hints, spoken text), the world rules, the interpreter (records a trace for animation), and English code ↔ blocks. No graphics. |
+| `src/content/` | The course (`levels.js`) and concept cards (`intros.js`). |
+| `src/editor/` | Drag-and-drop block editor: nested C-blocks, tap-to-add cursor, pickers, undo. |
+| `src/play/board.js` | The floating-island stage on a canvas, and every animation. |
+| `src/art/bit.js` | Bit, drawn with canvas paths in three views. |
+| `src/screens/` | Title, level select and play screens. |
+| `src/audio/sfx.js` | Synthesised sound effects and the English voice (browser speech for now). |
+| `src/progress/save.js` | Stars, saved programs and settings in the browser. |
 
-Map legend: `.` floor, `#` wall, `o` hole/water, `B` Bit, `*` star, `c` coin, `k` key, `D` door, `F` friend.
+No image or sound files: all art is drawn in code and all sounds are synthesised. Fonts are Fredoka and M PLUS Rounded 1c (SIL Open Font License) via Fontsource.
 
-## Design rules
+## Next
 
-- Blocks are real English sentences. Menus and instructions are Japanese (hiragana); the ヒント toggle adds a Japanese gloss under every block.
-- No typing anywhere. Tap a block to add it (and hear it), or drag it.
-- Mistakes are funny, never red: Bit bonks and says "Oops!".
-- A level is won only if the program *ends* on an awake star, so numbers and order matter.
-- Stars: 1 for clearing, 2 within par+2 blocks, 3 for par (the fewest blocks).
+Remix (change the rules of small ready-made games with `when` blocks, score and speed), then Make (build and share your own game).
