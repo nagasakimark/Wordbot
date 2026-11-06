@@ -37,7 +37,7 @@ export function worldsScreen(root, params, app) {
         h('div.widea', {}, w.idea, h('small', {}, w.ideaJa)),
         h('div.wstars', {}, open ? `★ ${got}/${lv.length * 3}` : icon('lock')));
       return card;
-    }), h('div.worldcard.soon', {}, h('div.wnum', {}, '+'), h('div.wname', {}, 'Make a game'), h('div.wja', {}, 'じぶんの ゲームを つくる'), h('div.widea', {}, 'Coming soon', h('small', {}, 'もうすぐ'))));
+    }), h('button.worldcard.makecard', { onclick: () => { sfx.play('pick'); app.go('studioHome', {}); } }, h('div.wnum', {}, '★'), h('div.wmake', icon('make')), h('div.wname', {}, 'Make'), h('div.wja', {}, 'じぶんで つくる'), h('div.widea', {}, 'Studio', h('small', {}, 'ゲーム・おはなし'))));
     const w = WORLDS.find((x) => x.id === current);
     levelArea.replaceChildren(
       h('div.worldhead', bitPortrait(84, { mood: 'happy' }), h('div', {}, h('h2', {}, w.en, h('span', {}, w.ja)), h('p', {}, 'Big idea: ', h('b', {}, w.idea), ' — ', w.ideaJa))),

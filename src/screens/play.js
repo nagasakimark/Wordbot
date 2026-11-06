@@ -291,6 +291,7 @@ export function playScreen(root, { id }, app) {
     const isNew = save.setStars(level.id, stars);
     void isNew;
     const next = LEVELS[level.index + 1];
+    const lastInWorld = level.world.levels[level.world.levels.length - 1] === level;
     const code = h('div.wincode', ...printProgram(editor.program).filter((l) => !l.empty && l.text).slice(0, 10).map((l) => h('div', { style: { '--i': (l.text.match(/^ */)[0].length) / 4 } }, l.text.trim())));
     const m = modal(h('div.win',
       h('div.winbit', bitPortrait(150, { mood: 'happy' })),
@@ -302,7 +303,9 @@ export function playScreen(root, { id }, app) {
         h('div.winbtns',
           btn('secondary', [icon('retry'), h('span', {}, 'Again')], () => { m.close(); stop(); }),
           btn('secondary', [icon('home'), h('span', {}, 'Map')], () => { m.close(); app.go('worlds', { world: level.world.id }); }),
-          next ? btn('primary', [h('span', {}, 'Next'), icon('next')], () => { m.close(); app.go('play', { id: next.id }); }) : null))), { cls: 'wincard', dismiss: false });
+          lastInWorld ? btn('make', [icon('make'), h('span', {}, 'Make')], () => { m.close(); app.go('studioHome', {}); }) : null,
+          next ? btn('primary', [h('span', {}, 'Next'), icon('next')], () => { m.close(); app.go('play', { id: next.id }); }) : null),
+        lastInWorld ? h('p.makehint', {}, `World ${level.world.id} クリア！ 「${level.world.idea}」を つかって、Make で じぶんの ゲームを つくってみよう。`) : null)), { cls: 'wincard', dismiss: false });
     [1, 2, 3].forEach((i) => { if (i <= stars) setTimeout(() => sfx.play('star'), 300 + i * 150); });
   }
 

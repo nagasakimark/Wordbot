@@ -11,8 +11,11 @@ import { save } from './progress/save.js';
 import { titleScreen } from './screens/title.js';
 import { worldsScreen } from './screens/worlds.js';
 import { playScreen } from './screens/play.js';
+import { studioScreen } from './screens/studio.js';
+import { studioHomeScreen } from './screens/studioHome.js';
+import { newProject, starterProject } from './studio/projects.js';
 
-const SCREENS = { title: titleScreen, worlds: worldsScreen, play: playScreen };
+const SCREENS = { title: titleScreen, worlds: worldsScreen, play: playScreen, studio: studioScreen, studioHome: studioHomeScreen };
 let cleanup = null;
 export const app = {
   current: null,
@@ -42,5 +45,8 @@ window.addEventListener('pointerdown', () => sfx.unlock(), { once: true });
 const q = new URLSearchParams(location.search);
 document.fonts?.ready.then(() => {});
 if (q.get('level')) app.go('play', { id: q.get('level') });
+else if (q.has('make')) app.go('studioHome', {});
+else if (q.get('starter')) app.go('studio', { project: starterProject(q.get('starter')) });
+else if (q.has('new')) app.go('studio', { project: newProject() });
 else if (q.has('levels')) app.go('worlds', {});
 else app.go('title');

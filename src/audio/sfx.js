@@ -57,11 +57,15 @@ const SOUNDS = {
   run: () => [523, 659, 784].forEach((f, i) => tone(f, 0.1, { type: 'triangle', vol: 0.15, at: i * 0.06 })),
   win: () => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i === 4 ? 0.6 : 0.16, { type: 'triangle', vol: 0.22, at: i * 0.1 })); [262, 392].forEach((f) => tone(f, 0.8, { vol: 0.1, at: 0.4 })); },
   star: () => { tone(1319, 0.12, { type: 'triangle', vol: 0.16 }); tone(1760, 0.2, { type: 'triangle', vol: 0.12, at: 0.06 }); },
+  jumpfx: () => tone(300, 0.22, { type: 'square', vol: 0.08, slide: 500 }),
+  laser: () => tone(1400, 0.25, { type: 'sawtooth', vol: 0.08, slide: -1200 }),
+  drum: () => { tone(140, 0.25, { vol: 0.45, slide: -80 }); noise(0.08, { vol: 0.25, freq: 2000 }); },
 };
 
 export const sfx = {
   play(name) { if (settings.sfx && SOUNDS[name]) try { SOUNDS[name](); } catch (e) { /* ignore */ } },
   unlock() { ac(); },
+  note(hz) { if (settings.sfx) { tone(hz, 0.35, { type: 'triangle', vol: 0.22 }); tone(hz * 2, 0.2, { type: 'sine', vol: 0.05 }); } },
   apply(s) { Object.assign(settings, s); if (!settings.voice) try { speechSynthesis.cancel(); } catch (e) { /* ignore */ } },
   get settings() { return settings; },
 };

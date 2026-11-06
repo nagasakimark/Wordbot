@@ -1,6 +1,6 @@
 # Word Bot
 
-Learn to program in English. Bit is a little robot who only understands English, so every block is a real English sentence: `go forward`, `repeat 4 times`, `if Bit can go forward`, `to paint a box:`. Built for Japanese elementary students (grade 5 pilot) on school Chromebooks: touch-friendly, no typing, no server.
+Learn to program in English, then make your own games and stories. Bit is a little robot who only understands English, so every block is a real English sentence: `go forward`, `repeat 4 times`, `if Bit can go forward`, `to paint a box:`. Built for Japanese elementary students (grade 5 pilot) on school Chromebooks: touch-friendly, no typing, no server.
 
 ## The course
 
@@ -21,6 +21,22 @@ Things that push past "move the robot":
 - **Visible control flow.** Conditions flash ✓/✗ on the block, loops show `2/4`, and a "new word" lights up its definition while it runs.
 - **Debug levels.** Kids get a broken program and fix it. `Step` runs one block at a time.
 - **Stars for short programs.** ★★★ means the fewest blocks.
+
+## Make (the Studio)
+
+The goal of the course: kids use the ideas to make their own things. **Make** is a Scratch-style studio where every block is English.
+
+- **Sprites and backdrops.** 16 characters and objects (Bit, Pip, Cat, Ghost, Rocket, Fish…) and 8 backdrops, all drawn in code. Drag sprites on the stage to place them.
+- **Scripts that run together.** Event blocks start scripts: `when I press Run`, `when I tap it`, `when I press space`, `when it touches Ghost`, `when I get the message hello`, `when I start as a copy`.
+- **Blocks.** Motion (`move 10 steps`, `point towards Bit`, `glide to a random place in 1 seconds`, `bounce if on the edge`, `jump`), Looks (`say Hello! for 2 seconds`, `look happy`, `change my color`), Sound (`play the note mi`), Control (`forever`, `wait`, `wait until`, `make a copy of me`), If (`if I am pressing right arrow`, `if score is more than 5`), variables (`set score to 0`, `change lives by -1`), new words, and `you win!` / `game over`.
+- **Typing English.** Speech can be any sentence kids type ("✏️ write…").
+- **Learn to make.** Three guided tutorials (a first game, a talking story, raining apples) that check each step by themselves.
+- **Remix a game.** Five starter games (Apple Catch, Ghost Chase, Hello Pip!, Star Music, Space Dodge), each with challenge cards.
+- **Ideas.** Ready-made scripts to drop onto any sprite, e.g. "Move with the arrow keys", "Fall like rain", "Win at 10 points".
+- **Saving.** Projects save in the browser (My projects). "⬇" saves a `.wordbot.json` file to hand in on Google Classroom, and "Open a file" opens one.
+- Touch Chromebooks get an on-screen arrow pad whenever a project uses keys. The ⛶ button gives a big stage for playing.
+
+`?make` opens Make, `?starter=apples` opens a starter, `?new` opens an empty project.
 
 ## Quick start
 
@@ -59,12 +75,13 @@ Every level has a `solution` written in English code. `npm test` proves it passe
 | `src/editor/` | Drag-and-drop block editor: nested C-blocks, tap-to-add cursor, pickers, undo. |
 | `src/play/board.js` | The floating-island stage on a canvas, and every animation. |
 | `src/art/bit.js` | Bit, drawn with canvas paths in three views. |
-| `src/screens/` | Title, level select and play screens. |
+| `src/screens/` | Title, level select, play, Make home and Studio screens. |
+| `src/studio/` | The Studio: runtime (`vm.js`, scripts as generator threads, like Scratch), stage drawing, sprite and backdrop art, starter games and ideas, tutorials. |
 | `src/audio/sfx.js` | Synthesised sound effects and the English voice (browser speech for now). |
 | `src/progress/save.js` | Stars, saved programs and settings in the browser. |
 
 No image or sound files: all art is drawn in code and all sounds are synthesised. Fonts are Fredoka and M PLUS Rounded 1c (SIL Open Font License) via Fontsource.
 
-## Next
+## Next ideas
 
-Remix (change the rules of small ready-made games with `when` blocks, score and speed), then Make (build and share your own game).
+Share links between classmates, a class gallery, recorded voice lines, and more tutorials (a maze game, a quiz).

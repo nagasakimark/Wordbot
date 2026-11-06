@@ -32,7 +32,7 @@ function rr(c, x, y, w, h, r) {
 }
 
 // ---------------------------------------------------------------- objects
-function drawTree(c, T, kind) {
+export function drawTree(c, T, kind) {
   const u = T / 100;
   c.lineJoin = 'round'; c.lineCap = 'round';
   c.fillStyle = 'rgba(0,0,0,.16)'; c.beginPath(); c.ellipse(0, 28 * u, 30 * u, 9 * u, 0, 0, TAU); c.fill();
@@ -74,7 +74,7 @@ function drawTree(c, T, kind) {
   if (kind === 'apple') { c.fillStyle = '#e8352f'; c.strokeStyle = '#8f1d18'; c.lineWidth = 2 * u; [[10, -30], [-14, -12], [18, -10]].forEach(([x, y]) => { c.beginPath(); c.arc(x * u, y * u, 5.5 * u, 0, TAU); c.fill(); c.stroke(); }); }
 }
 
-function drawRock(c, T) {
+export function drawRock(c, T) {
   const u = T / 100;
   c.fillStyle = 'rgba(0,0,0,.18)'; c.beginPath(); c.ellipse(0, 27 * u, 38 * u, 10 * u, 0, 0, TAU); c.fill();
   c.lineJoin = 'round';
@@ -93,7 +93,7 @@ function drawRock(c, T) {
   c.lineWidth = 3 * u; c.beginPath(); c.moveTo(8 * u, -22 * u); c.lineTo(2 * u, -8 * u); c.lineTo(10 * u, 2 * u); c.stroke();
 }
 
-function drawHouse(c, T, open) {
+export function drawHouse(c, T, open) {
   const u = T / 100;
   c.lineJoin = 'round';
   c.fillStyle = 'rgba(0,0,0,.16)'; c.beginPath(); c.ellipse(0, 28 * u, 40 * u, 10 * u, 0, 0, TAU); c.fill();
@@ -113,7 +113,7 @@ function drawHouse(c, T, open) {
   c.beginPath(); c.moveTo(22.5 * u, -6 * u); c.lineTo(22.5 * u, 5 * u); c.stroke();
 }
 
-function drawGem(c, T, t, phase) {
+export function drawGem(c, T, t, phase) {
   const u = T / 100, bob = Math.sin(t / 380 + phase) * 4 * u;
   c.fillStyle = 'rgba(0,0,0,.15)'; c.beginPath(); c.ellipse(0, 22 * u, 20 * u * (1 - bob / (30 * u)), 6 * u, 0, 0, TAU); c.fill();
   c.save(); c.translate(0, -6 * u + bob);

@@ -38,7 +38,9 @@ export function titleScreen(root, _params, app) {
       h('h1.logo', {}, ...letters),
       h('p.tag', {}, 'Tell Bit what to do — in English!'),
       h('p.tagja', {}, 'えいごの ブロックで ロボットを プログラミング！'),
-      btn('primary.huge', [h('span', {}, 'Play'), h('small', {}, 'あそぶ')], () => { sfx.unlock(); speak("Let's go!"); app.go('worlds', {}); }),
+      h('div.titlebtns',
+        btn('primary.huge', [h('span', {}, 'Learn'), h('small', {}, 'まなぶ')], () => { sfx.unlock(); speak("Let's learn!"); app.go('worlds', {}); }),
+        btn('make.huge', [h('span', {}, 'Make'), h('small', {}, 'つくる')], () => { sfx.unlock(); speak("Let's make something!"); app.go('studioHome', {}); })),
       stars ? h('div.titlestars', {}, '★ ' + stars) : null),
     h('div.titleright', h('div.democard', islandBox, h('div.democodewrap', h('div.demolabel', {}, 'English code', h('small', {}, 'Bit が いま している ところが ひかるよ')), code)))));
 
