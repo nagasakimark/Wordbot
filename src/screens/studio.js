@@ -187,11 +187,14 @@ export function studioScreen(root, params, app) {
     if (now - glowT > 90) {
       glowT = now;
       const ids = new Set();
-      if (vm.running) for (const t of vm.threads) if (t.inst.base === selected && t.cur) ids.add(t.cur);
+      if (vm.running) {
+        for (const t of vm.threads) if (t.inst.base === selected && t.cur) ids.add(t.cur);
+        for (const id in vm.lit) if (vm.time - vm.lit[id] < 0.35) ids.add(id); // blocks that just ran (e.g. an if whose arrow key is held)
+      }
       editor.glow(ids);
       updateMonitors();
       runBtn.classList.toggle('going', vm.running);
-      if (tut && now - (tutCheckT || 0) > 400) { tutCheckT = now; checkTutorial(); }
+      if (tut && now - (tutCheckT || 0) > 250) { tutCheckT = now; checkTutorial(); }
     }
     raf = requestAnimationFrame(frame);
   }
@@ -370,47 +373,68 @@ export function studioScreen(root, params, app) {
   }
 
   // ---------- guided tutorial ----------
+  let stepSince = Date.now();
+  const setCard = (...kids) => tutCard.replaceChildren(...kids.filter(Boolean));
   function drawTutorial(justDone) {
     if (!tut) return;
     const st = project.tutorial;
     const n = tut.steps.length;
+    stepSince = Date.now();
     if (st.step >= n) {
-      tutCard.replaceChildren(
+      const skipped = st.skipped || 0;
+      setCard(
         h('div.tuthead', {}, h('b', {}, tut.en), h('small', {}, tut.ja)),
-        h('div.tutdone', bitPortrait(110, { mood: 'happy' }), h('b', {}, tut.done.en), h('span', {}, tut.done.ja)),
+        skipped
+          ? h('div.tutdone', bitPortrait(110, { mood: 'normal' }), h('b', {}, 'Almost! You skipped ' + skipped + (skipped > 1 ? ' steps.' : ' step.')), h('span', {}, 'とばした ステップが あるよ。もういちど じぶんで ためしてみよう。'))
+          : h('div.tutdone', bitPortrait(110, { mood: 'happy' }), h('b', {}, tut.done.en), h('span', {}, tut.done.ja)),
         btn('primary.small', [h('span', {}, 'Keep making'), h('small', {}, 'つづける')], () => { delete project.tutorial; saveNow(); app.go('studio', { project }); }));
       return;
     }
     const step = tut.steps[st.step];
-    tutCard.replaceChildren(
+    setCard(
       h('div.tuthead', {}, h('b', {}, tut.en), h('small', {}, tut.ja)),
       h('div.tutdots', ...tut.steps.map((_, i) => h('i' + (i < st.step ? '.done' : i === st.step ? '.now' : '')))),
-      h('div.tutstep' + (justDone ? '.pop' : ''), {}, h('span.tutnum', {}, 'Step ' + (st.step + 1)), h('b', {}, step.en), h('span.tutja', {}, step.ja)),
-      step.code ? h('div.tutcode', staticBlocks(parseProgram(step.code.replace(/^ {8}/gm, ''), { studio: true }), level)) : null,
-      h('button.tutskip', { onclick: () => { st.step++; saveNow(); drawTutorial(); } }, 'skip ›'));
+      h('div.tutstep' + (justDone ? '.fresh' : ''), {}, h('span.tutnum', {}, 'Step ' + (st.step + 1) + ' / ' + n), h('b', {}, step.en), h('span.tutja', {}, step.ja)),
+      step.code ? h('div.tutcode', staticBlocks(parseProgram(dedent(step.code), { studio: true }), level)) : null,
+      step.tip ? h('div.tuttip', {}, h('b', {}, '💡 ' + step.tip), h('span', {}, step.tipJa || '')) : null,
+      step.real ? h('div.tutlive', {}, vm.running ? 'Playing… keep going!' : 'Press ▶ Run to play') : null,
+      h('button.tutskip', { onclick: () => { st.step++; st.skipped = (st.skipped || 0) + 1; saveNow(); drawTutorial(); } }, 'skip ›'));
     if (justDone) speak(step.en);
   }
   function checkTutorial() {
     const st = project.tutorial;
     if (!st || st.step >= tut.steps.length) return;
+    // a stuck kid gets a hint after a while, and a skip button after a longer while
+    const waited = Date.now() - stepSince;
+    tutCard.classList.toggle('showtip', waited > 12000);
+    tutCard.classList.toggle('showskip', waited > 40000);
+    const live = tutCard.querySelector('.tutlive');
+    if (live) live.textContent = vm.running ? 'Playing… keep going!' : (vm.ended === 'lose' ? 'Game over. Press ▶ Run to try again' : 'Press ▶ Run to play');
     let ok = false;
     try { ok = tut.steps[st.step].check(project, vm, tutState); } catch (e) { ok = false; }
     if (!ok) return;
     st.step++;
     sfx.play('star'); speak(st.step >= tut.steps.length ? tut.done.en : 'Great!');
     saveNow();
-    setTimeout(() => drawTutorial(true), 500);
+    setTimeout(() => drawTutorial(true), 350);
   }
 
   // ---------- go ----------
   drawTray(); drawInfo(); drawMonitors(); updateDpad(); drawTutorial(true);
   raf = requestAnimationFrame(frame);
   if (!save.seen('studio:help') && !tut) { save.markSeen('studio:help'); setTimeout(showHelp, 300); }
-  window.__studio = { project, get vm() { return vm; }, editor, start, stop: stopRun, select: (name) => select(project.sprites.find((s) => s.name === name)) };
+  window.__studio = { project, get vm() { return vm; }, editor, start, stop: stopRun, select: (name) => select(project.sprites.find((s) => s.name === name)),
+    setCode: (name, code) => { const sp = project.sprites.find((s) => s.name === name); const pr = parseProgram(code, { studio: true }); sp.scripts = pr.scripts || []; sp.defs = pr.defs || []; select(sp); changed(); } };
 
   return () => { alive = false; cancelAnimationFrame(raf); ro.disconnect(); vm.stop(); saveNow(); stopSpeech(); window.removeEventListener('keydown', onKey); window.removeEventListener('keyup', onKey); };
 }
 
+// remove the indentation shared by every line, so a snippet can be shown on its own
+function dedent(code) {
+  const lines = code.split('\n').filter((l) => l.trim());
+  const k = Math.min(...lines.map((l) => l.match(/^ */)[0].length));
+  return code.split('\n').map((l) => l.slice(k)).join('\n');
+}
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const SOUND_MAP = { pop: 'press', jump: 'jumpfx', coin: 'gem', boing: 'bump', laser: 'laser', win: 'win', oops: 'fail', drum: 'drum', magic: 'star' };
 const PLAY = '<svg viewBox="0 0 48 48"><path d="M15 9 39 24 15 39z" fill="currentColor" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/></svg>';

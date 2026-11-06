@@ -484,9 +484,10 @@ button { font-family: inherit; color: inherit; }
 .endbanner.win .endtitle { color: #ffd23a; }
 .endbanner.lose .endtitle { color: #ff6b5b; }
 .endja { font: 800 26px var(--ja); color: #fff; text-shadow: 0 3px 0 var(--ink); margin-bottom: 14px; }
-.dpad { position: absolute; right: 10px; bottom: 10px; display: grid; grid-template-columns: repeat(3, 58px); grid-template-rows: repeat(3, 58px); gap: 3px; opacity: .72; }
+.dpad { position: absolute; right: 8px; bottom: 8px; display: grid; grid-template-columns: repeat(3, 46px); grid-template-rows: repeat(3, 46px); gap: 2px; opacity: .4; transition: opacity .15s; }
+.dpad:active, .dpad:focus-within { opacity: .9; }
 .studio.big .dpad { grid-template-columns: repeat(3, 84px); grid-template-rows: repeat(3, 84px); opacity: .85; }
-.dp { border: 3px solid var(--ink); border-radius: 50%; background: rgba(255, 255, 255, .85); font: 700 26px var(--en); color: var(--ink); cursor: pointer; touch-action: none; box-shadow: 0 4px 0 rgba(34, 48, 92, .35); }
+.dp { border: 3px solid var(--ink); border-radius: 50%; background: rgba(255, 255, 255, .85); font: 700 20px var(--en); color: var(--ink); cursor: pointer; touch-action: none; box-shadow: 0 4px 0 rgba(34, 48, 92, .35); }
 .dp.on { background: #ffd23a; transform: translateY(3px); box-shadow: none; }
 .dp.up { grid-area: 1 / 2; } .dp.left { grid-area: 2 / 1; } .dp.space { grid-area: 2 / 2; font-size: 22px; } .dp.right { grid-area: 2 / 3; } .dp.down { grid-area: 3 / 2; }
 .is-running .stagebox canvas { cursor: crosshair; }
@@ -577,7 +578,7 @@ button { font-family: inherit; color: inherit; }
 .tutdots i.done { background: #2fc35a; }
 .tutdots i.now { background: #ffb300; }
 .tutstep { display: flex; flex-direction: column; gap: 4px; }
-.tutstep.pop { animation: modalIn .4s cubic-bezier(.3, 1.5, .5, 1); }
+.tutstep.fresh { animation: modalIn .4s cubic-bezier(.3, 1.5, .5, 1); }
 .tutnum { align-self: flex-start; background: #22b14c; color: #fff; font: 700 16px var(--en); padding: 1px 12px; border-radius: 10px; }
 .tutstep b { font: 600 23px var(--en); line-height: 1.2; }
 .tutja { font: 800 16px var(--ja); color: var(--ink-soft); line-height: 1.5; }
@@ -598,3 +599,46 @@ button { font-family: inherit; color: inherit; }
 
 .makehint { margin: 14px 0 0; font: 800 17px var(--ja); color: #a34400; background: #fff1d6; border-radius: 14px; padding: 8px 14px; }
 .gbtn.make .ico { width: 30px; height: 30px; }
+
+/* tutorial: hints and skip appear only when a kid is stuck */
+.tuttip { display: none; background: #fff6d6; border: 3px solid #ffc933; border-radius: 14px; padding: 8px 12px; flex-direction: column; gap: 3px; }
+.tuttip b { font: 600 15px var(--en); line-height: 1.25; } .tuttip span { font: 800 14px var(--ja); color: var(--ink-soft); }
+.tutcard.showtip .tuttip { display: flex; }
+.tutskip { display: none; }
+.tutcard.showskip .tutskip { display: block; }
+.tutlive { font: 700 17px var(--en); color: #147a32; background: #e6f9ec; border-radius: 12px; padding: 8px 12px; text-align: center; }
+
+/* ---- "which block is running?": dim the rest, point at the current one ---- */
+.ws.running:not(.studiows) .blk:not(.cblk):not(.active):not(.callnow) { opacity: .42; filter: saturate(.7); transition: opacity .15s; }
+.ws.running:not(.studiows) .hat.starthat { opacity: .6; }
+.ws.running:not(.studiows) .defstack:not(.calling) { opacity: .5; }
+.blk.active, .blk.running-now { position: relative; }
+.blk.active::before, .blk.running-now::before {
+  content: ''; position: absolute; left: -30px; top: 50%; width: 0; height: 0; margin-top: -14px;
+  border-left: 22px solid #ffd21f; border-top: 14px solid transparent; border-bottom: 14px solid transparent;
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); animation: ptr .55s ease-in-out infinite;
+}
+@keyframes ptr { 50% { transform: translateX(-6px); } }
+.blk.callnow { box-shadow: 0 6px 0 var(--d), 0 0 0 4px #ffd21f; }
+.blk.callnow:not(.active)::before { content: 'inside ›'; position: absolute; right: 10px; top: -12px; background: #ffd21f; color: #4a3b00; font: 700 13px var(--en); border-radius: 10px; padding: 1px 8px; }
+.defstack.calling .defbody { background: #fff0b8; box-shadow: 0 0 0 4px #ffd21f; }
+.defstack.calling .defhat::before { content: 'running this word ›'; position: absolute; right: 14px; top: -14px; background: #ffd21f; color: #4a3b00; font: 700 14px var(--en); border-radius: 10px; padding: 1px 10px; }
+
+/* ---- the "New words" area ---- */
+.defzone { margin-top: 18px; padding: 12px 14px 8px; border: 3px dashed #e08ab5; border-radius: 22px; background: rgba(255, 235, 245, .55); display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.defzone-head { display: flex; gap: 10px; align-items: center; }
+.defzone-head .bicon { width: 34px; height: 34px; flex: none; color: #c4337a; }
+.defzone-head > div { display: flex; flex-direction: column; gap: 1px; }
+.defzone-head b { font: 700 20px var(--en); color: #a02866; }
+.defzone-head span { font: 600 14px var(--en); color: #6b4a5c; line-height: 1.25; }
+.defzone-head small { font: 800 13px var(--ja); color: #8a6a7c; }
+
+/* tutorial card: keep the code example readable */
+.tutcard { gap: 8px; padding: 12px 14px; }
+.tuthead b { font-size: 20px; }
+.tutstep b { font-size: 19px; }
+.tutja { font-size: 14px; line-height: 1.4; }
+.tutcode { overflow: auto; min-height: 120px; padding: 8px 8px 2px; }
+.tutcode .static-prog { zoom: .56; }
+.tuttip b { font-size: 13px; } .tuttip span { font-size: 12px; }
+.tuttip { padding: 6px 10px; }

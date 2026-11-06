@@ -36,6 +36,8 @@ export class VM {
     this.vars = {};
     for (const v of this.project.vars || []) this.vars[v] = 0;
     this.insts = this.project.sprites.map((s) => this.instFor(s));
+    this.spawned = 0; // how many copies have been made this run
+    this.lit = {}; // block id -> time it last ran, so the editor can light up what is happening
   }
   instFor(s, from) {
     const o = from || s;
@@ -169,6 +171,7 @@ export class VM {
   *node(t, n, depth) {
     const i = t.inst, a = n.args || {};
     t.cur = n.id;
+    if (n.type !== 'if') this.lit[n.id] = this.time;
     yield* this.exec(t, n, depth, i, a);
     if (MOVES.has(n.type)) this.fence(i);
   }
@@ -213,7 +216,7 @@ export class VM {
       case 'repeat': { const k = this.num(a.n); for (let j = 0; j < k; j++) { yield* this.list(t, n.body, depth); yield; } break; }
       case 'forever': for (;;) { yield* this.list(t, n.body, depth); yield; }
       case 'until': while (!this.cond(a.cond, i)) { yield* this.list(t, n.body, depth); yield; } break;
-      case 'if': if (this.cond(a.cond, i)) yield* this.list(t, n.body, depth); break;
+      case 'if': if (this.cond(a.cond, i)) { this.lit[n.id] = this.time; yield* this.list(t, n.body, depth); } break;
       case 'ifelse': if (this.cond(a.cond, i)) yield* this.list(t, n.body, depth); else yield* this.list(t, n.else, depth); break;
       case 'stopScript': throw STOP;
       case 'stopAll': this.stop(); throw STOP;
@@ -221,6 +224,7 @@ export class VM {
         if (this.insts.length >= MAX_SPRITES) break;
         const c = this.instFor(i.base, i);
         c.isClone = true;
+        this.spawned++;
         this.insts.splice(this.insts.indexOf(i), 0, c);
         this.fire('whenClone', () => true, c);
         break;

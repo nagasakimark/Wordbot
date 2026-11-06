@@ -187,7 +187,7 @@ export class Editor {
   listEl(key, nodes) {
     const l = h('div.list', { 'data-key': key });
     nodes.forEach((n) => l.append(this.blockEl(n)));
-    if (!nodes.length) l.append(h('div.slot-empty', {}, key === 'main' ? 'ここに ブロックを ならべよう' : 'ここに いれる'));
+    if (!nodes.length) l.append(h('div.slot-empty', {}, key === 'main' ? 'ここに ブロックを ならべよう' : key.startsWith('def:') ? 'この ことばの やりかたを ここに ならべよう' : 'ここに いれる'));
     this.listEls.set(key, l);
     return l;
   }
@@ -195,6 +195,7 @@ export class Editor {
     this.blockEls = new Map();
     this.listEls = new Map();
     const stacks = [];
+    const defStacks = [];
     for (const d of this.program.defs) {
       const C = CATS.word;
       const hat = h('div.hat.defhat', { style: { '--c': C.color, '--d': C.dark }, 'data-def': d.id },
@@ -204,7 +205,13 @@ export class Editor {
         h('span.bt', {}, ':'),
         h('span.bjp.inline', {}, '「' + d.name + '」の やりかた'),
         d.given ? null : h('button.defdel', { title: 'delete', onclick: (e) => { e.stopPropagation(); this.deleteWord(d); } }, '×'));
-      stacks.push(h('div.stack.defstack', {}, hat, h('div.defbody', { style: { '--c': C.color } }, this.listEl('def:' + d.id, d.body)), h('div.deffoot', { style: { '--c': C.color } })));
+      defStacks.push(h('div.stack.defstack', {}, hat, h('div.defbody', { style: { '--c': C.color } }, this.listEl('def:' + d.id, d.body)), h('div.deffoot', { style: { '--c': C.color } })));
+    }
+    if (defStacks.length) {
+      stacks.push(h('div.defzone', {},
+        h('div.defzone-head', {}, h('span.bicon', { html: iconSvg('book') }),
+          h('div', {}, h('b', {}, 'New words'), h('span', {}, 'Build a word here once. Then use it like any block, as many times as you like.'), h('small', {}, 'ここで ことばを つくる。ブロックと おなじように なんども つかえるよ。'))),
+        ...defStacks));
     }
     if (this.level.studio) {
       const scripts = (this.program.scripts || []).map((sc) => {
@@ -642,9 +649,11 @@ export class Editor {
     const e = this.mode === 'text' ? this.codeLines?.get(id) : this.blockEls.get(id);
     if (e) { e.classList.add('active'); this.scrollTo(e); }
   }
-  defActive(defId, on) {
+  defActive(defId, on, callId) {
     const hat = this.inner.querySelector(`[data-def="${defId}"]`);
     hat?.classList.toggle('calling', on);
+    hat?.closest('.defstack')?.classList.toggle('calling', on);
+    if (callId) this.blockEls.get(callId)?.classList.toggle('callnow', on);
   }
   badge(id, text, kind) {
     const e = this.blockEls.get(id);
@@ -658,7 +667,7 @@ export class Editor {
     if (b) { b.textContent = ''; b.className = 'badge'; }
   }
   clearRun() {
-    this.wsEl.querySelectorAll('.active, .err, .calling').forEach((e) => e.classList.remove('active', 'err', 'calling'));
+    this.wsEl.querySelectorAll('.active, .err, .calling, .callnow').forEach((e) => e.classList.remove('active', 'err', 'calling', 'callnow'));
     this.wsEl.querySelectorAll('.badge.on').forEach((b) => { b.textContent = ''; b.className = 'badge'; });
   }
   markError(id) {

@@ -253,11 +253,11 @@ export function playScreen(root, { id }, app) {
           break;
         case 'call':
           editor.setActive(t.id);
-          editor.defActive(t.def, true); calls.push(t.def);
+          editor.defActive(t.def, true, t.id); calls.push({ def: t.def, id: t.id });
           await pace(260);
           break;
         case 'done':
-          if (t.def) { editor.defActive(t.def, false); calls = calls.filter((d) => d !== t.def); }
+          if (t.def) { const i = calls.map((c) => c.def).lastIndexOf(t.def); const c = i >= 0 ? calls.splice(i, 1)[0] : null; editor.defActive(t.def, false, c && c.id); }
           else editor.clearBadge(t.id);
           break;
         case 'end':
