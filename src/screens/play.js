@@ -8,6 +8,7 @@ import { blockSpoken, cloneProgram, countBlocks, VARS } from '../engine/blocks.j
 import { printProgram, parseProgram } from '../engine/text.js';
 import { LEVELS } from '../content/levels.js';
 import { INTROS } from '../content/intros.js';
+import { HINTS } from '../content/hints.js';
 import { save } from '../progress/save.js';
 import { bitPortrait } from '../art/bit.js';
 
@@ -64,9 +65,37 @@ export function playScreen(root, { id }, app) {
   const codePanel = h('div.codepanel', h('div.palwrap', h('div.panel-label', {}, 'Blocks', h('small', {}, 'ブロック')), paletteEl),
     h('div.wswrap', h('div.panel-label', {}, 'Program', h('small', {}, 'プログラム')), wsEl, runbar));
 
+  // ---------- hints: a nudge, then the plan, then the answer ----------
+  const hints = HINTS[level.id] || [];
+  let hintTier = 0, failedRuns = 0;
+  const startedAt = Date.now();
+  const hintBox = h('div.hintbox');
+  const hintBtnEl = h('button.hintask', { onclick: (e) => { e.stopPropagation(); askHint(); } });
+  const hintReady = () => failedRuns > 0 || Date.now() - startedAt > 40000;
+  function drawHints() {
+    const parts = [];
+    for (let i = 0; i < hintTier; i++) {
+      if (i < hints.length) parts.push(h('div.hintline', {}, h('b', {}, 'ヒント ' + (i + 1)), h('span', {}, hints[i])));
+      else parts.push(h('div.hintline.answer', {}, h('b', {}, 'こたえ'), h('span', {}, 'ブロックの ならびかたを みて、じぶんで つくってみよう。'), h('div.hintcode', staticBlocks(level.solutionProgram, level))));
+    }
+    hintBox.replaceChildren(...parts);
+    hintBox.classList.toggle('open', hintTier > 0);
+    const total = hints.length + 1;
+    hintBtnEl.textContent = hintTier >= total ? '' : hintTier === 0 ? '💡 ヒント' : hintTier < hints.length ? '💡 つぎの ヒント' : '👀 こたえを みる';
+    hintBtnEl.style.display = hintTier >= total ? 'none' : '';
+    hintBtnEl.classList.toggle('ready', hintReady());
+  }
+  function askHint() {
+    if (!hintReady()) { toast('まず じぶんで ためしてみよう！ Run を おしてみてね。', 'info'); return; }
+    hintTier = Math.min(hintTier + 1, hints.length + 1);
+    drawHints();
+    sfx.play('tap');
+  }
+  const hintTimer = setInterval(() => { if (hintBtnEl.isConnected) hintBtnEl.classList.toggle('ready', hintReady()); else clearInterval(hintTimer); }, 2000);
   const goalCard = h('div.goalcard', { onclick: () => speak(level.goalEn) },
-    h('div.goal-en', {}, icon('sound', 'mini'), h('span', {}, level.goalEn)),
-    h('div.goal-ja', {}, level.goalJa));
+    h('div.goalrow', {}, h('div.goaltext', {}, h('div.goal-en', {}, icon('sound', 'mini'), h('span', {}, level.goalEn)), h('div.goal-ja', {}, level.goalJa)), hints.length ? hintBtnEl : null),
+    hintBox);
+  if (hints.length) drawHints();
   const tabs = h('div.maptabs');
   const hud = h('div.hud');
   const banner = h('div.banner.hidden');
@@ -269,6 +298,7 @@ export function playScreen(root, { id }, app) {
 
   function failed(r, mi) {
     const res = r.result;
+    failedRuns++; drawHints();
     if (res.id) editor.markError(res.id);
     sfx.play('fail');
     const [en0, ja] = FAIL[res.reason] || ['Oops!', ''];
@@ -279,6 +309,15 @@ export function playScreen(root, { id }, app) {
     if (res.reason === 'fall') board.respawn(level.parsed[mi].bit).catch(() => {});
     speak(en);
     showBanner('bad', en, where + ja, [btn('small.retry', [icon('retry'), h('span', {}, 'Try again')], () => { stop(); })]);
+  }
+
+  // "Bit did 40 things. You wrote 5 blocks." makes it clear why loops and words are worth it.
+  function insight() {
+    let acts = 0;
+    try { acts = Math.max(...level.maps.map((_, mi) => runProgram(editor.program, level, mi).trace.filter((t) => t.k === 'act').length)); } catch (e) { acts = 0; }
+    const n = editor.count();
+    if (acts < n * 1.6 || acts < 6) return null;
+    return h('p.insight', {}, h('b', {}, `ビットは ぜんぶで ${acts}かい うごいたよ。`), h('span', {}, `でも、かいた ブロックは ${n}こ だけ！ くりかえしや ことばの おかげ。`));
   }
 
   async function won() {
@@ -299,6 +338,7 @@ export function playScreen(root, { id }, app) {
         h('h2.wintitle', {}, ['', 'Good job!', 'Great!', 'Perfect!'][stars]),
         h('div.winstars', ...[1, 2, 3].map((i) => h('span.wstar' + (i <= stars ? '.on' : ''), { style: { animationDelay: (i * 0.15) + 's' } }, '★'))),
         h('p.winmsg', {}, `${n} ブロック で クリア！`, stars < 3 ? h('small', {}, `★3 は ${level.par}こ いか。もっと みじかく できるかな？`) : h('small', {}, 'いちばん みじかい プログラム！')),
+        insight(),
         h('div.winlabel', {}, 'Your program in English', h('small', {}, 'えいごの プログラム')), code,
         h('div.winbtns',
           btn('secondary', [icon('retry'), h('span', {}, 'Again')], () => { m.close(); stop(); }),
@@ -342,18 +382,48 @@ export function playScreen(root, { id }, app) {
     const key = level.intro || 'welcome';
     showIntro(key, true);
   }
+  function buildQuiz(q, okBtn) {
+    let wrong = 0, done = false;
+    okBtn.disabled = true; okBtn.classList.add('locked');
+    const msg = h('div.quizmsg');
+    const finish = () => { done = true; okBtn.disabled = false; okBtn.classList.remove('locked'); };
+    const buttons = q.choices.map((c, i) => h('button.quizopt', { onclick: () => {
+      if (done) return;
+      if (i === q.answer) {
+        buttons[i].classList.add('right'); msg.className = 'quizmsg good';
+        msg.replaceChildren(h('b', {}, 'せいかい！'), h('span', {}, q.why)); sfx.play('star'); finish();
+      } else {
+        wrong++; buttons[i].classList.add('wrong'); buttons[i].disabled = true; sfx.play('fail');
+        msg.className = 'quizmsg bad';
+        if (wrong >= 2) { buttons[q.answer].classList.add('right'); msg.replaceChildren(h('b', {}, 'こたえは「' + q.choices[q.answer] + '」'), h('span', {}, q.why)); finish(); }
+        else msg.replaceChildren(h('b', {}, 'おしい！'), h('span', {}, 'うえの ブロックを ゆっくり よんで、もう1かい えらんでみよう。'));
+      }
+    } }, c));
+    return h('div.quiz',
+      h('div.quizhead', {}, h('b', {}, 'Check! ' ), h('small', {}, 'できたか ためそう')),
+      h('div.quizq', {}, q.q),
+      q.code ? h('div.introcode', staticBlocks(parseProgram(q.code), level)) : null,
+      h('div.quizopts', ...buttons), msg);
+  }
   function showIntro(key, force) {
     const it = INTROS[key];
     if (!it) return;
     if (!force && save.seen('intro:' + key)) return;
     save.markSeen('intro:' + key);
-    const body = h('div.intro',
-      h('div.introbit', bitPortrait(170, { mood: it.mood || 'ok' })),
-      h('div.intromain',
-        h('h2', {}, it.en), h('div.introja', {}, it.ja),
-        h('ul.introlines', ...it.lines.map((l) => h('li', {}, l))),
-        it.code ? h('div.introcode', it.compare ? [h('div.cmp', staticBlocks(parseProgram(it.compare), level)), h('div.cmparrow', {}, '→'), h('div.cmp', staticBlocks(parseProgram(it.code), level))] : staticBlocks(parseProgram(it.code), level)) : null,
-        h('div.introbtns', btn('primary', [h('span', {}, 'OK!'), h('small', {}, 'わかった')], () => m.close()))));
+    const okBtn = btn('primary', [h('span', {}, 'OK!'), h('small', {}, 'わかった')], () => m.close());
+    // a quick question before moving on: it checks the idea was understood, and explains the answer
+    const quizBox = it.quiz ? buildQuiz(it.quiz, okBtn) : null;
+    const left = [
+      h('h2', {}, it.en), h('div.introja', {}, it.ja),
+      h('ul.introlines', ...it.lines.map((l) => h('li', {}, l))),
+      it.steps ? h('ol.introsteps', ...it.steps.map((st) => h('li' + (st.code ? '' : '.wide'), {}, h('span', {}, st.ja), st.code ? h('div.introcode', staticBlocks(parseProgram(st.code), level)) : null))) : null,
+      it.code && !it.steps ? h('div.introcode', it.compare ? [h('div.cmp', staticBlocks(parseProgram(it.compare), level)), h('div.cmparrow', {}, '→'), h('div.cmp', staticBlocks(parseProgram(it.code), level))] : staticBlocks(parseProgram(it.code), level)) : null,
+    ];
+    const body = h('div.intro' + (quizBox ? '.split' : ''),
+      h('div.introbit', bitPortrait(quizBox ? 130 : 170, { mood: it.mood || 'ok' })),
+      quizBox
+        ? h('div.intromain.split', h('div.introleft', ...left), h('div.introright', quizBox, h('div.introbtns', okBtn)))
+        : h('div.intromain', ...left, h('div.introbtns', okBtn)));
     const m = modal(body, { cls: 'introcard' });
     speak(it.en);
   }

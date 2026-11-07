@@ -75,3 +75,38 @@ test('the course has five worlds, and each big idea gets an intro card', () => {
   assert.ok(LEVELS.length >= 25);
   assert.ok(Object.keys(BLOCKS).length >= 12);
 });
+
+// Nested loops must really be NEEDED: no program within the block limit, with at most one
+// loop level (any repeat count, any body), can beat the nested-loop levels.
+test('the nested-loop levels cannot be beaten without nesting', () => {
+  const atoms = ['go forward', 'turn left', 'turn right', 'paint it red'];
+  const seqs = (n) => (n === 0 ? [[]] : seqs(n - 1).flatMap((s) => atoms.map((a) => [...s, a])));
+  for (const id of ['2-5', '2-6']) {
+    const lv = LEVELS.find((l) => l.id === id);
+    let tried = 0;
+    for (let total = 0; total <= lv.max; total++) {
+      for (let k = 0; k <= total; k++) { // k = blocks inside the one loop (0 = no loop at all)
+        const outside = total - k - (k ? 1 : 0);
+        if (outside < 0) continue;
+        for (let pre = 0; pre <= outside; pre++) {
+          for (const A of seqs(pre)) for (const B of seqs(outside - pre)) {
+            const bodies = k ? seqs(k) : [null];
+            for (const body of bodies) for (const n of (k ? [2, 3, 4, 5, 6, 7, 8, 9, 10, 12] : [0])) {
+              const lines = [...A, ...(body ? ['repeat ' + n + ' times:', ...body.map((x) => '    ' + x)] : []), ...B];
+              const p = parseProgram(lines.join('\n'));
+              tried++;
+              if (runAll(p, lv).every((r) => r.result.ok)) assert.fail(id + ' beaten without nesting:\n' + lines.join('\n'));
+            }
+          }
+        }
+      }
+    }
+    assert.ok(tried > 1000, 'searched ' + tried);
+  }
+});
+
+import { HINTS } from '../src/content/hints.js';
+test('every level has two written hints, and no stray hints', () => {
+  for (const lv of LEVELS) assert.equal((HINTS[lv.id] || []).length, 2, lv.id + ' needs 2 hints');
+  for (const id of Object.keys(HINTS)) assert.ok(LEVELS.some((l) => l.id === id), 'hints for unknown level ' + id);
+});

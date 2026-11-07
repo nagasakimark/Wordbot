@@ -160,13 +160,46 @@ go forward`],
     paint it blue`,
       },
       {
-        title: 'Square', ja: 'しかく', intro: 'nested',
-        goalEn: 'Paint a red square. Try a loop in a loop!', goalJa: 'あかい しかくを ぬろう。くりかえしの なかに くりかえし！',
-        maps: [['.....', '.>pp.', '.pTp.', '.ppp.', '.....']], startOnPad: true, goal: { paint: true },
-        target: [['.....', '.rrr.', '.r.r.', '.rrr.', '.....']],
+        title: 'Fences', ja: 'さく', intro: 'nested',
+        goalEn: 'Build 3 fences. Each fence has 3 posts.', goalJa: 'さくを 3つ つくろう。1つの さくは ポスト 3こ。',
+        maps: [['  T       T  ', '>ppp.ppp.ppp.']], goal: { paint: true },
+        target: [['             ', ' rrr.rrr.rrr.']],
+        palette: [...MOVE, 'repeat', 'paint'], colors: ['red'], max: 6,
+        start: `repeat 3 times:
+    go forward
+    paint it red`,
+        anti: [`repeat 3 times:
+    go forward
+    paint it red
+    go forward
+    paint it red
+    go forward
+    paint it red
+    go forward`],
+        solution: `repeat 3 times:
+    repeat 3 times:
+        go forward
+        paint it red
+    go forward`,
+      },
+      {
+        title: 'Big square', ja: 'おおきな しかく',
+        goalEn: 'Paint the red square. One side is 4 tiles.', goalJa: 'あかい しかくを ぬろう。1つの へんは 4マス。',
+        maps: [['>pppp', 'p...p', 'p.T.p', 'p...p', 'ppppp']], startOnPad: true, goal: { paint: true },
+        target: [['rrrrr', 'r...r', 'r...r', 'r...r', 'rrrrr']],
         palette: [...MOVE, 'repeat', 'paint'], colors: ['red', 'blue'], max: 6,
+        anti: [`repeat 4 times:
+    paint it red
+    go forward
+    paint it red
+    go forward
+    paint it red
+    go forward
+    paint it red
+    go forward
+    turn right`],
         solution: `repeat 4 times:
-    repeat 2 times:
+    repeat 4 times:
         paint it red
         go forward
     turn right`,

@@ -85,3 +85,11 @@ No image or sound files: all art is drawn in code and all sounds are synthesised
 ## Next ideas
 
 Share links between classmates, a class gallery, recorded voice lines, and more tutorials (a maze game, a quiz).
+
+
+## How the course teaches (not just tells)
+
+- **Every big idea is forced by a problem.** A block limit (or several maps) makes the old way impossible, and tests brute-force check it. The nested-loop levels (Fences, Big square) cannot be beaten with fewer than two loop levels.
+- **Check! questions.** Each concept card ends with a one-question check; the OK button unlocks when answered (a wrong answer is explained).
+- **Hints on every level.** A nudge, then the plan, then the answer. They unlock after a first failed try or 40 seconds.
+- **The point of it all.** After a win, Bit says how many actions it did versus how many blocks you wrote.
